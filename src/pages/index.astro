@@ -1,11 +1,165 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import { services } from '../data/services';
 ---
 
 <Layout>
-	<Welcome />
+  <main class="page-shell">
+    <section class="hero">
+      <p class="eyebrow">Personal Ops Hub</p>
+      <h1>TTLINK Command Center</h1>
+      <p class="subtitle">
+        一个用于聚合个人服务、知识入口和后续自动化运维能力的主站。
+      </p>
+    </section>
+
+    <section class="service-grid" aria-label="服务入口">
+      {services.map((service) => (
+        <a class="service-card" href={service.url} target="_blank" rel="noreferrer">
+          <div class="card-topline">
+            <span class:list={['status-pill', service.status === '已上线' ? 'online' : 'planned']}>
+              {service.status}
+            </span>
+          </div>
+          <h2>{service.name}</h2>
+          <p>{service.url.replace('https://', '')}</p>
+        </a>
+      ))}
+    </section>
+  </main>
 </Layout>
+
+<style>
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :global(body) {
+    min-height: 100vh;
+    color: #e6edf3;
+    background:
+      radial-gradient(circle at top left, rgba(56, 189, 248, 0.22), transparent 32rem),
+      radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.14), transparent 28rem),
+      #07111f;
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+
+  .page-shell {
+    width: min(1120px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 72px 0;
+  }
+
+  .hero {
+    max-width: 760px;
+    margin-bottom: 40px;
+  }
+
+  .eyebrow {
+    margin: 0 0 16px;
+    color: #67e8f9;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(42px, 8vw, 84px);
+    line-height: 0.95;
+    letter-spacing: -0.07em;
+  }
+
+  .subtitle {
+    max-width: 620px;
+    margin: 24px 0 0;
+    color: #9fb0c2;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .service-card {
+    min-height: 190px;
+    padding: 22px;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 24px;
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  }
+
+  .service-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(103, 232, 249, 0.62);
+    background: rgba(15, 23, 42, 0.92);
+  }
+
+  .card-topline {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 48px;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .status-pill.online {
+    color: #bbf7d0;
+    background: rgba(22, 163, 74, 0.18);
+  }
+
+  .status-pill.planned {
+    color: #fde68a;
+    background: rgba(217, 119, 6, 0.18);
+  }
+
+  .service-card h2 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: -0.04em;
+  }
+
+  .service-card p {
+    margin: 12px 0 0;
+    color: #9fb0c2;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+
+  @media (max-width: 900px) {
+    .service-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .page-shell {
+      padding: 40px 0;
+    }
+
+    .service-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
