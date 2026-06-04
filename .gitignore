@@ -27,3 +27,9 @@ pnpm-debug.log*
 test-results/
 playwright-report/
 blob-report/
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
