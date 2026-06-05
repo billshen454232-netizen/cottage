@@ -1,0 +1,502 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { planItems, workItems } from '../data/console';
+import { services } from '../data/services';
+
+const commands = [
+  ['help', 'Show this command list.'],
+  ['services', 'List service entrypoints.'],
+  ['health', 'Fetch health API status.'],
+  ['work', 'Show recent project work.'],
+  ['plan', 'Show current learning plan.'],
+  ['clear', 'Clear terminal screen.'],
+  ['exit', 'Exit console and return home.'],
+];
+---
+
+<Layout>
+  <main class="terminal-stage">
+    <section class="terminal-window" aria-label="My Ops Console">
+      <header class="terminal-titlebar">
+        <div class="traffic-lights" aria-hidden="true">
+          <span class="red"></span>
+          <span class="yellow"></span>
+          <span class="green"></span>
+        </div>
+        <span>My Ops Console</span>
+      </header>
+
+      <div class="terminal-body" id="terminalBody">
+        <div id="terminalOutput">
+          <p><span class="tag system">System</span> booting TTLINK Ops Console ...</p>
+          <p><span class="tag user">User</span> v_shentao</p>
+          <p><span class="tag role">Role</span> TestDev / Ops / Backend tooling</p>
+          <p><span class="tag stack">Stack</span> Astro · Cloudflare Pages · FastAPI · Nginx · GitHub Actions</p>
+          <p><span class="tag ok">Ready</span> Type <span class="command-inline">help</span> to inspect available commands.</p>
+        </div>
+
+        <form class="terminal-input-line" id="consoleForm" autocomplete="off">
+          <span class="prompt">➜</span><span class="cwd">Console</span><span class="typed-proxy" id="typedProxy"></span><span class="cursor" aria-hidden="true"></span>
+          <input id="consoleInput" name="command" aria-label="Console command" autofocus spellcheck="false" />
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script define:vars={{ commands, planItems, services, workItems }}>
+    const output = document.getElementById('terminalOutput');
+    const form = document.getElementById('consoleForm');
+    const input = document.getElementById('consoleInput');
+    const terminalBody = document.getElementById('terminalBody');
+    const typedProxy = document.getElementById('typedProxy');
+    const commandNames = commands.map(([name]) => name);
+    const history = [];
+    let historyIndex = 0;
+
+    const escapeHtml = (value) =>
+      String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+
+    const syncInput = () => {
+      typedProxy.textContent = input.value;
+    };
+
+    const append = (html) => {
+      output.insertAdjacentHTML('beforeend', html);
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    };
+
+    const printPrompt = (command) => {
+      append(`<p><span class="prompt">➜</span> <span class="cwd">Console</span> ${escapeHtml(command)}</p>`);
+    };
+
+    const renderList = (items) =>
+      `<ul class="plain-list">${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+
+    const renderHelp = () => `
+      <p class="muted">Here is a list of supporting commands.</p>
+      <div class="command-list">
+        ${commands.map(([name, description]) => `
+          <p><span class="command-name">${escapeHtml(name)}</span><span class="command-desc">${escapeHtml(description)}</span></p>
+        `).join('')}
+      </div>
+    `;
+
+    const renderServices = () => `
+      <ul class="service-output">
+        ${services.map((service) => `
+          <li>
+            <a href="${escapeHtml(service.url)}" target="_blank" rel="noreferrer">${escapeHtml(service.name)}</a>
+            <span>${escapeHtml(service.status)}</span>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+
+    const renderHealth = async () => {
+      append('<p><span class="tag system">System</span> fetching https://health.ttlink.asia/api/v1/health ...</p>');
+
+      try {
+        const response = await fetch('https://health.ttlink.asia/api/v1/health');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        const rows = data.services
+          .map((service) => {
+            const code = service.statusCode ?? '-';
+            const latency = service.latencyMs == null ? '-' : `${service.latencyMs}ms`;
+            return `<tr><td>${escapeHtml(service.id)}</td><td class="status-${escapeHtml(service.status)}">${escapeHtml(service.status)}</td><td>${code}</td><td>${latency}</td></tr>`;
+          })
+          .join('');
+
+        append(`
+          <p><span class="tag ok">Done</span> health status: <span class="status-${escapeHtml(data.status)}">${escapeHtml(data.status)}</span></p>
+          <table>
+            <thead><tr><th>service</th><th>status</th><th>code</th><th>latency</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `);
+      } catch (error) {
+        append(`<p><span class="tag error-tag">Error</span> health fetch failed: ${escapeHtml(error.message || error)}</p>`);
+        append('<p class="muted">If this is a browser CORS error, the FastAPI service needs CORS headers for home.ttlink.asia / localhost.</p>');
+      }
+    };
+
+    const runCommand = async (rawCommand) => {
+      const command = rawCommand.trim().toLowerCase();
+      if (!command) return;
+
+      history.push(command);
+      historyIndex = history.length;
+      printPrompt(command);
+
+      if (command === 'clear') {
+        output.innerHTML = '';
+        return;
+      }
+
+      if (command === 'exit') {
+        append('<p><span class="tag system">System</span> exiting console ...</p>');
+        window.location.href = '/';
+        return;
+      }
+
+      if (command === 'help') {
+        append(renderHelp());
+        return;
+      }
+
+      if (command === 'services') {
+        append(renderServices());
+        return;
+      }
+
+      if (command === 'work') {
+        append(renderList(workItems));
+        return;
+      }
+
+      if (command === 'plan') {
+        append(renderList(planItems));
+        return;
+      }
+
+      if (command === 'health') {
+        await renderHealth();
+        return;
+      }
+
+      append(`<p><span class="tag error-tag">Error</span> command not found: ${escapeHtml(command)}</p>`);
+      append('<p class="muted">Type <span class="command-inline">help</span> to see available commands.</p>');
+    };
+
+    input.addEventListener('input', syncInput);
+
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (history.length === 0) return;
+        historyIndex = Math.max(0, historyIndex - 1);
+        input.value = history[historyIndex] ?? '';
+        syncInput();
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (history.length === 0) return;
+        historyIndex = Math.min(history.length, historyIndex + 1);
+        input.value = history[historyIndex] ?? '';
+        syncInput();
+      }
+
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const current = input.value.trim().toLowerCase();
+        if (!current) return;
+
+        const matches = commandNames.filter((name) => name.startsWith(current));
+        if (matches.length === 1) {
+          input.value = matches[0];
+          syncInput();
+          return;
+        }
+
+        if (matches.length > 1) {
+          append(`<p class="muted">${matches.map(escapeHtml).join('    ')}</p>`);
+        }
+      }
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const command = input.value;
+      input.value = '';
+      syncInput();
+      await runCommand(command);
+    });
+
+    terminalBody.addEventListener('click', () => input.focus());
+  </script>
+</Layout>
+
+<style is:global>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+    color: #bfc5d2;
+    background: #050505;
+    font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .terminal-stage {
+    min-height: 100vh;
+    padding: 0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(80, 80, 80, 0.12), transparent 34rem),
+      #050505;
+  }
+
+  .terminal-window {
+    min-height: 100vh;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.84);
+  }
+
+  .terminal-titlebar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    color: #d4d4d8;
+    background: #222;
+    font-size: 13px;
+  }
+
+  .traffic-lights {
+    position: absolute;
+    left: 10px;
+    display: inline-flex;
+    gap: 8px;
+  }
+
+  .traffic-lights span {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+  }
+
+  .red { background: #ff5f57; }
+  .yellow { background: #ffbd2e; }
+  .green { background: #28c840; }
+
+  .terminal-body {
+    max-height: calc(100vh - 30px);
+    overflow: auto;
+    padding: 24px 20px 28px;
+    font-size: 14px;
+    line-height: 1.9;
+  }
+
+  p {
+    margin: 0 0 6px;
+  }
+
+  .prompt,
+  .cwd {
+    color: #67e8f9;
+    font-weight: 700;
+  }
+
+  .prompt {
+    margin-right: 8px;
+  }
+
+  .cwd {
+    margin-right: 8px;
+  }
+
+  .muted,
+  .command-desc {
+    color: #a1a1aa;
+  }
+
+  .tag,
+  .command-name,
+  .command-inline {
+    display: inline-flex;
+    border-radius: 4px;
+    padding: 0 5px;
+    background: rgba(147, 51, 234, 0.18);
+    color: #d58cff;
+    line-height: 1.45;
+  }
+
+  .tag,
+  .command-inline {
+    margin-right: 8px;
+  }
+
+  .tag.system {
+    background: rgba(147, 51, 234, 0.18);
+    color: #d58cff;
+  }
+
+  .tag.ok {
+    background: rgba(77, 124, 15, 0.22);
+    color: #a3e635;
+  }
+
+  .tag.user {
+    background: rgba(14, 116, 144, 0.2);
+    color: #67e8f9;
+  }
+
+  .tag.role {
+    background: rgba(29, 78, 216, 0.2);
+    color: #93c5fd;
+  }
+
+  .tag.stack {
+    background: rgba(180, 83, 9, 0.2);
+    color: #fbbf24;
+  }
+
+  .tag.error-tag {
+    background: rgba(190, 18, 60, 0.2);
+    color: #fb7185;
+  }
+
+  .command-list {
+    display: grid;
+    gap: 2px;
+    margin: 8px 0 20px;
+  }
+
+  .command-list p {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    column-gap: 10px;
+    align-items: baseline;
+  }
+
+  .command-name {
+    justify-self: start;
+    color: #d58cff;
+  }
+
+  .plain-list {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0 18px;
+    padding: 0 0 0 18px;
+  }
+
+  .service-output {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0 18px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .service-output li {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  a {
+    color: #a3e635;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: #d9f99d;
+    text-shadow: 0 0 10px rgba(163, 230, 53, 0.45);
+  }
+
+  li span {
+    color: #71717a;
+    font-size: 12px;
+  }
+
+  .terminal-input-line {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-top: 18px;
+  }
+
+  input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border: 0;
+    outline: 0;
+    opacity: 0;
+    color: transparent;
+    background: transparent;
+    caret-color: transparent;
+    font: inherit;
+  }
+
+  .typed-proxy {
+    min-width: 1px;
+    color: #f8fafc;
+    white-space: pre;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 9px;
+    height: 17px;
+    margin-left: 1px;
+    background: #67e8f9;
+    animation: blink 1s steps(2, start) infinite;
+  }
+
+  table {
+    margin: 8px 0 18px;
+    border-collapse: collapse;
+    color: #bfc5d2;
+    font-size: 13px;
+  }
+
+  th,
+  td {
+    padding: 4px 18px 4px 0;
+    text-align: left;
+  }
+
+  th {
+    color: #71717a;
+    font-weight: 400;
+  }
+
+  .status-ok,
+  .status-up {
+    color: #a3e635;
+  }
+
+  .status-degraded,
+  .status-planned {
+    color: #facc15;
+  }
+
+  .status-down,
+  .error {
+    color: #fb7185;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .terminal-body {
+      padding: 18px 14px 24px;
+      font-size: 13px;
+    }
+
+    .command-list p {
+      grid-template-columns: 1fr;
+      row-gap: 2px;
+      margin-bottom: 8px;
+    }
+
+    .service-output li {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+</style>

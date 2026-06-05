@@ -2,8 +2,19 @@ import time
 
 import httpx
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="TTLINK Health API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4321",
+        "https://home.ttlink.asia",
+    ],
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 SERVICES = [
     {

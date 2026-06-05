@@ -1,30 +1,35 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { services } from '../data/services';
+
+const onlineCount = services.filter((service) => service.status === '已上线').length;
 ---
 
 <Layout>
-  <main class="page-shell">
-    <section class="hero">
-      <p class="eyebrow">Personal Ops Hub</p>
-      <h1>TTLINK Command Center</h1>
-      <p class="subtitle">
-        一个用于聚合个人服务、知识入口和后续自动化运维能力的主站。
-      </p>
-    </section>
+  <main class="home-stage">
+    <div class="ambient-grid" aria-hidden="true"></div>
 
-    <section class="service-grid" aria-label="服务入口">
-      {services.map((service) => (
-        <a class="service-card" href={service.url} target="_blank" rel="noreferrer">
-          <div class="card-topline">
-            <span class:list={['status-pill', service.status === '已上线' ? 'online' : 'planned']}>
-              {service.status}
-            </span>
-          </div>
-          <h2>{service.name}</h2>
-          <p>{service.url.replace('https://', '')}</p>
-        </a>
-      ))}
+    <section class="profile-card" aria-label="TTLINK personal ops homepage">
+      <p class="kicker">Personal Ops Hub</p>
+      <h1>TTLINK Command Center</h1>
+      <p class="signature">Tools · Knowledge · Automation · Operations</p>
+
+      <nav class="link-row" aria-label="服务入口">
+        {services.map((service) => (
+          <a href={service.url} target="_blank" rel="noreferrer" aria-label={service.name}>
+            <span class:list={['link-status', service.status === '已上线' ? 'online' : 'planned']}></span>
+            <span>{service.name}</span>
+          </a>
+        ))}
+      </nav>
+
+      <div class="ops-note" aria-label="运行状态摘要">
+        <span>{onlineCount} services online</span>
+        <span>health.ttlink.asia ready</span>
+        <span>CI guarded</span>
+      </div>
+
+      <a class="console-link" href="/about">enter console →</a>
     </section>
   </main>
 </Layout>
@@ -36,130 +41,208 @@ import { services } from '../data/services';
 
   :global(body) {
     min-height: 100vh;
-    color: #e6edf3;
-    background:
-      radial-gradient(circle at top left, rgba(56, 189, 248, 0.22), transparent 32rem),
-      radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.14), transparent 28rem),
-      #07111f;
+    margin: 0;
+    color: #f8fafc;
+    background: #060606;
     font-family:
-      ui-sans-serif,
-      system-ui,
+      "Helvetica Neue",
+      "Microsoft Yahei",
       -apple-system,
       BlinkMacSystemFont,
       "Segoe UI",
       sans-serif;
+    overflow: hidden;
   }
 
-  .page-shell {
-    width: min(1120px, calc(100% - 32px));
-    margin: 0 auto;
-    padding: 72px 0;
+  .home-stage {
+    position: relative;
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 28px;
+    isolation: isolate;
   }
 
-  .hero {
-    max-width: 760px;
-    margin-bottom: 40px;
+  .home-stage::before {
+    position: absolute;
+    inset: -20%;
+    z-index: -2;
+    content: "";
+    background:
+      radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.11), transparent 28rem),
+      radial-gradient(circle at 30% 70%, rgba(34, 197, 94, 0.1), transparent 22rem),
+      radial-gradient(circle at 70% 66%, rgba(56, 189, 248, 0.08), transparent 24rem),
+      #060606;
   }
 
-  .eyebrow {
-    margin: 0 0 16px;
-    color: #67e8f9;
-    font-size: 14px;
+  .ambient-grid {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at center, black 0%, black 42%, transparent 78%);
+    opacity: 0.75;
+  }
+
+  .profile-card {
+    width: min(760px, 100%);
+    text-align: center;
+    animation: fade-in 520ms ease-out both;
+  }
+
+  .kicker {
+    margin: 0 0 18px;
+    color: #a3a3a3;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.32em;
     text-transform: uppercase;
   }
 
   h1 {
     margin: 0;
-    font-size: clamp(42px, 8vw, 84px);
-    line-height: 0.95;
-    letter-spacing: -0.07em;
+    color: #ffffff;
+    font-size: clamp(34px, 7vw, 68px);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.055em;
+    text-shadow: 0 0 26px rgba(255, 255, 255, 0.18);
   }
 
-  .subtitle {
-    max-width: 620px;
-    margin: 24px 0 0;
-    color: #9fb0c2;
-    font-size: 18px;
-    line-height: 1.8;
+  .signature {
+    margin: 18px 0 46px;
+    color: #b6b6b6;
+    font-size: clamp(14px, 2vw, 18px);
+    font-weight: 300;
+    letter-spacing: 0.16em;
   }
 
-  .service-grid {
+  .link-row {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
+    gap: 0;
+    margin: 0 auto;
+    padding: 0 0 34px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
 
-  .service-card {
-    min-height: 190px;
-    padding: 22px;
-    color: inherit;
-    text-decoration: none;
-    border: 1px solid rgba(148, 163, 184, 0.24);
-    border-radius: 24px;
-    background: rgba(15, 23, 42, 0.72);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
-    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
-  }
-
-  .service-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(103, 232, 249, 0.62);
-    background: rgba(15, 23, 42, 0.92);
-  }
-
-  .card-topline {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 48px;
-  }
-
-  .status-pill {
+  .link-row a {
+    position: relative;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    color: #b6b6b6;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 400;
+    transition: color 180ms ease, text-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .link-row a + a {
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .link-row a:hover {
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.42);
+    transform: translateY(-2px);
+  }
+
+  .link-status {
+    width: 7px;
+    height: 7px;
     border-radius: 999px;
-    padding: 6px 10px;
+    background: #71717a;
+  }
+
+  .link-status.online {
+    background: #22c55e;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+  }
+
+  .link-status.planned {
+    background: #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.55);
+  }
+
+  .ops-note {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 22px;
+    color: #777;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     font-size: 12px;
-    font-weight: 700;
+    letter-spacing: 0.02em;
   }
 
-  .status-pill.online {
-    color: #bbf7d0;
-    background: rgba(22, 163, 74, 0.18);
+  .ops-note span::before {
+    content: "// ";
+    color: #3f3f46;
   }
 
-  .status-pill.planned {
-    color: #fde68a;
-    background: rgba(217, 119, 6, 0.18);
+  .console-link {
+    display: inline-flex;
+    margin-top: 28px;
+    color: #d4d4d8;
+    text-decoration: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    opacity: 0.72;
+    transition: opacity 180ms ease, text-shadow 180ms ease, transform 180ms ease;
   }
 
-  .service-card h2 {
-    margin: 0;
-    font-size: 24px;
-    letter-spacing: -0.04em;
+  .console-link:hover {
+    opacity: 1;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.42);
+    transform: translateY(-1px);
   }
 
-  .service-card p {
-    margin: 12px 0 0;
-    color: #9fb0c2;
-    line-height: 1.6;
-    word-break: break-word;
-  }
-
-  @media (max-width: 900px) {
-    .service-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
-  @media (max-width: 560px) {
-    .page-shell {
-      padding: 40px 0;
+  @media (max-width: 680px) {
+    :global(body) {
+      overflow: auto;
     }
 
-    .service-grid {
+    .home-stage {
+      align-items: start;
+      padding-top: 72px;
+    }
+
+    .link-row {
+      grid-template-columns: 1fr 1fr;
+      row-gap: 12px;
+    }
+
+    .link-row a:nth-child(odd) {
+      border-left: 0;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .link-row {
       grid-template-columns: 1fr;
+    }
+
+    .link-row a {
+      border-left: 0 !important;
     }
   }
 </style>
