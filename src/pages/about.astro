@@ -1,11 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { planItems, workItems } from '../data/console';
+import { planItems, toolItems, workItems } from '../data/console';
 import { services } from '../data/services';
 
 const commands = [
   ['help', 'Show this command list.'],
   ['services', 'List service entrypoints.'],
+  ['tools', 'List personal operation tools.'],
   ['health', 'Fetch health API status.'],
   ['work', 'Show recent project work.'],
   ['plan', 'Show current learning plan.'],
@@ -43,7 +44,7 @@ const commands = [
     </section>
   </main>
 
-  <script define:vars={{ commands, planItems, services, workItems }}>
+  <script define:vars={{ commands, planItems, services, toolItems, workItems }}>
     const output = document.getElementById('terminalOutput');
     const form = document.getElementById('consoleForm');
     const input = document.getElementById('consoleInput');
@@ -92,6 +93,18 @@ const commands = [
           <li>
             <a href="${escapeHtml(service.url)}" target="_blank" rel="noreferrer">${escapeHtml(service.name)}</a>
             <span>${escapeHtml(service.status)}</span>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+
+    const renderTools = () => `
+      <ul class="tool-output">
+        ${toolItems.map((tool) => `
+          <li>
+            <a href="${escapeHtml(tool.url)}" target="_blank" rel="noreferrer">${escapeHtml(tool.name)}</a>
+            <p>${escapeHtml(tool.description)}</p>
+            <span>${escapeHtml(tool.url)}</span>
           </li>
         `).join('')}
       </ul>
@@ -152,6 +165,11 @@ const commands = [
 
       if (command === 'services') {
         append(renderServices());
+        return;
+      }
+
+      if (command === 'tools') {
+        append(renderTools());
         return;
       }
 
@@ -380,7 +398,8 @@ const commands = [
     padding: 0 0 0 18px;
   }
 
-  .service-output {
+  .service-output,
+  .tool-output {
     display: grid;
     gap: 4px;
     margin: 8px 0 18px;
@@ -392,6 +411,19 @@ const commands = [
     display: flex;
     gap: 12px;
     align-items: center;
+  }
+
+  .tool-output {
+    gap: 12px;
+  }
+
+  .tool-output li {
+    display: grid;
+    gap: 2px;
+  }
+
+  .tool-output p {
+    color: #bfc5d2;
   }
 
   a {

@@ -14,3 +14,26 @@ export const planItems = [
   '设计 GitHub Actions 控制 Cloudflare Pages 部署的发布闸门',
   '规划知识图谱 graph.ttlink.asia 的上线方式',
 ];
+
+export const toolItems = [
+  {
+    name: 'CPA Helper',
+    description: '用量统计、API Key 管理、用户余额和模型价格维护。',
+    url: 'https://cpa.ttlink.asia',
+  },
+  {
+    name: 'CLIProxyAPI',
+    description: '模型代理管理面板，用于管理 provider、API Key 和路由。',
+    url: 'https://cli.ttlink.asia/management.html',
+  },
+  {
+    name: 'Subs Portal',
+    description: '订阅门户，用于管理代理订阅和节点入口。',
+    url: 'https://subs.ttlink.asia/subs.html',
+  },
+  {
+    name: 'Health API',
+    description: '服务健康检查接口，用于查看核心服务可用性。',
+    url: 'https://health.ttlink.asia/api/v1/health',
+  },
+];
