@@ -1,7 +1,7 @@
 export const services = [
   {
     name: '订阅门户',
-    url: 'https://subs.ttlink.asia/subs.html',
+    url: '/subscribe',
     status: '已上线',
   },
   {

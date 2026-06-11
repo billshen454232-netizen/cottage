@@ -13,7 +13,7 @@ test('homepage shows the command center and service links', async ({ page }) => 
 
   await expect(page.getByRole('link', { name: /订阅门户/ })).toHaveAttribute(
     'href',
-    'https://subs.ttlink.asia/subs.html',
+    '/subscribe',
   );
   await expect(page.getByRole('link', { name: /CLI Proxy API/ })).toHaveAttribute(
     'href',

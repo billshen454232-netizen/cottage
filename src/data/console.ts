@@ -28,8 +28,8 @@ export const toolItems = [
   },
   {
     name: 'Subs Portal',
-    description: '订阅门户，用于管理代理订阅和节点入口。',
-    url: 'https://subs.ttlink.asia/subs.html',
+    description: '订阅工作区，用于复制 active YAML、查看 IP 使用活动、节点状态和流量趋势。',
+    url: '/subscribe',
   },
   {
     name: 'Health API',
