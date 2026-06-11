@@ -1,0 +1,586 @@
+---
+import Layout from '../layouts/Layout.astro';
+import {
+  ipStats,
+  opsDocs,
+  proxyNodes,
+  subscriptionOverview,
+  subscriptionWorkspaceNav,
+  trafficBars,
+} from '../data/subscription';
+---
+
+<Layout>
+  <main class="subscription-page">
+    <div class="star star-a" aria-hidden="true"></div>
+    <div class="star star-b" aria-hidden="true"></div>
+    <div class="star star-c" aria-hidden="true"></div>
+
+    <section class="identity" aria-labelledby="workspace-title">
+      <h1 id="workspace-title">TTLINK</h1>
+      <p>{subscriptionOverview.subtitle}</p>
+    </section>
+
+    <nav class="portal-nav" aria-label="Subscription workspace sections">
+      {subscriptionWorkspaceNav.map((item, index) => (
+        <a class:list={[index === 0 && 'active']} href={`#${item.id}`}>
+          <span aria-hidden="true">{item.icon}</span>
+          <b>{item.label}</b>
+        </a>
+      ))}
+    </nav>
+
+    <section class="action-panel" id="subscription" aria-label="Active subscription">
+      <div>
+        <div class="action-line">
+          <strong>Active subscription</strong>
+          <span class="status-pill">{subscriptionOverview.statusLabel}</span>
+          <small>{subscriptionOverview.urlVisibilityLabel} · updated {subscriptionOverview.lastUpdated}</small>
+        </div>
+        <p>复制当前 Clash/Mihomo 订阅，或打开 active YAML。</p>
+      </div>
+      <div class="action-buttons">
+        <button id="copyButton" type="button" data-copy-url={subscriptionOverview.subscriptionUrl}>复制订阅</button>
+        <a href={subscriptionOverview.subscriptionUrl} target="_blank" rel="noreferrer">打开 YAML</a>
+      </div>
+    </section>
+
+    <section class="workspace-grid" aria-label="Subscription operations workspace">
+      <article class="data-window ip-window" id="ip-activity" aria-labelledby="ip-heading">
+        <header class="window-head">
+          <div>
+            <h2 id="ip-heading">IP 使用窗口</h2>
+            <p>最后活动、所在地、ISP、ASN、节点和用量。</p>
+          </div>
+          <span>{subscriptionOverview.uniqueIpsToday} today / {subscriptionOverview.uniqueIpsMonth} month</span>
+        </header>
+
+        <div class="ip-table" role="table" aria-label="IP usage activity">
+          <div class="ip-row ip-head" role="row">
+            <span>IP / Device</span>
+            <span>Location / ISP</span>
+            <span>Last seen</span>
+            <span>Today</span>
+            <span>Node</span>
+          </div>
+          <div class="ip-scroll">
+            {ipStats.map((item, index) => (
+              <div class:list={['ip-row', index === 0 && 'current']} role="row">
+                <span><b>{item.ip}</b><small>{item.label}</small></span>
+                <span><b>{item.location}</b><small>{item.isp} · {item.asn}</small></span>
+                <span><b>{item.lastSeen}</b><small>first {item.firstSeenToday} · {item.sessionCount} sessions</small></span>
+                <span><b>{item.today}</b><small>{item.month} month</small></span>
+                <span><b>{item.node}</b><small>{item.note}</small></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </article>
+
+      <aside class="side-stack" aria-label="Node and traffic summary">
+        <article class="data-window compact-window" id="nodes" aria-labelledby="nodes-heading">
+          <h2 id="nodes-heading">节点</h2>
+          <div class="node-list">
+            {proxyNodes.map((node) => (
+              <div>
+                <div><strong>{node.name}</strong><span>{node.latency}</span></div>
+                <p>{node.roleLabel} {node.protocol}</p>
+                <small>{node.route}</small>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article class="data-window compact-window" id="traffic" aria-labelledby="traffic-heading">
+          <h2 id="traffic-heading">流量</h2>
+          <div class="traffic-summary">
+            <span>今日 <b>{subscriptionOverview.todayTrafficGb} GB</b></span>
+            <span>本月 <b>{subscriptionOverview.usedTrafficGb} GB</b></span>
+          </div>
+          <div class="bar-chart" aria-label="7 day traffic trend">
+            {trafficBars.map((bar) => <i style={`height:${bar.value}%`} title={bar.day}></i>)}
+          </div>
+        </article>
+      </aside>
+    </section>
+
+    <section class="data-window docs-window" id="docs" aria-labelledby="docs-heading">
+      <header class="window-head">
+        <div>
+          <h2 id="docs-heading">文档</h2>
+          <p>导入、切换、检查和架构说明。</p>
+        </div>
+      </header>
+      <div class="docs-grid">
+        {opsDocs.map((doc) => (
+          <details>
+            <summary>{doc.title}</summary>
+            <p>{doc.summary}</p>
+            <ol>{doc.steps.map((step) => <li>{step}</li>)}</ol>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const copyButton = document.getElementById('copyButton');
+
+    copyButton?.addEventListener('click', async () => {
+      const url = copyButton.getAttribute('data-copy-url') ?? '';
+      try {
+        await navigator.clipboard.writeText(url);
+        copyButton.textContent = '已复制';
+      } catch {
+        copyButton.textContent = '复制失败';
+      }
+
+      setTimeout(() => {
+        copyButton.textContent = '复制订阅';
+      }, 1400);
+    });
+  </script>
+</Layout>
+
+<style>
+  :global(*) { box-sizing: border-box; }
+  :global(html) { scroll-behavior: smooth; }
+  :global(body) {
+    margin: 0;
+    min-height: 100vh;
+    color: #f3f4f6;
+    background: #030405;
+    font-family: Inter, "Microsoft Yahei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .subscription-page {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    padding: 28px min(34px, 4vw) 42px;
+    background:
+      radial-gradient(circle at 12% 22%, rgba(255,255,255,.35) 0 1px, transparent 2px),
+      radial-gradient(circle at 78% 16%, rgba(255,255,255,.45) 0 1px, transparent 2px),
+      radial-gradient(circle at 46% 31%, rgba(255,255,255,.28) 0 1px, transparent 2px),
+      radial-gradient(circle at 88% 58%, rgba(255,255,255,.24) 0 1px, transparent 2px),
+      linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px),
+      #030405;
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 42px 42px, 42px 42px, auto;
+  }
+
+  .subscription-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 12%, rgba(255,255,255,.12), transparent 22%),
+      linear-gradient(to bottom, rgba(3,4,5,.05), rgba(3,4,5,.45) 36%, rgba(3,4,5,.12));
+  }
+
+  .star {
+    position: absolute;
+    background:
+      linear-gradient(90deg, transparent 48%, rgba(255,255,255,.72) 50%, transparent 52%),
+      linear-gradient(0deg, transparent 48%, rgba(255,255,255,.72) 50%, transparent 52%);
+    pointer-events: none;
+  }
+
+  .star-a { left: 12%; top: 25%; width: 38px; height: 38px; opacity: .34; }
+  .star-b { right: 18%; top: 18%; width: 26px; height: 26px; opacity: .5; }
+  .star-c { right: 7%; top: 46%; width: 42px; height: 42px; opacity: .22; }
+
+  .identity,
+  .portal-nav,
+  .action-panel,
+  .workspace-grid,
+  .docs-window {
+    position: relative;
+    z-index: 1;
+  }
+
+  .identity {
+    text-align: center;
+    margin-bottom: 27px;
+  }
+
+  h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(36px, 5vw, 48px);
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    text-shadow: 0 0 16px rgba(255,255,255,.22);
+  }
+
+  .identity p {
+    margin: 14px 0 0;
+    color: #bababa;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    letter-spacing: .22em;
+  }
+
+  .portal-nav {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+    width: min(720px, 100%);
+    margin: 0 auto 28px;
+  }
+
+  .portal-nav a {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    color: #cecece;
+    text-decoration: none;
+  }
+
+  .portal-nav a.active,
+  .portal-nav a:hover,
+  .portal-nav a:focus-visible {
+    color: #fff;
+  }
+
+  .portal-nav a.active::after {
+    content: "";
+    position: absolute;
+    bottom: -13px;
+    width: 78%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.92), transparent);
+    box-shadow: 0 0 20px rgba(255,255,255,.42);
+  }
+
+  .portal-nav span { font-size: 22px; }
+  .portal-nav b { font-size: 16px; font-weight: 500; }
+
+  .action-panel,
+  .data-window {
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(16,18,22,.94);
+    box-shadow: 0 28px 80px rgba(0,0,0,.58);
+  }
+
+  .action-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+    width: min(900px, 100%);
+    margin: 0 auto 24px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    backdrop-filter: blur(2px);
+  }
+
+  .action-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .action-line strong { color: #fff; font-weight: 520; }
+  .action-line small { color: #aaa; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+  .status-pill {
+    border-radius: 999px;
+    padding: 4px 9px;
+    color: #08090a;
+    background: #f2f2f2;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .action-panel p {
+    margin: 7px 0 0;
+    color: #cfcfcf;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  button,
+  .action-buttons a {
+    min-height: 42px;
+    border-radius: 12px;
+    padding: 0 16px;
+    font: inherit;
+    font-weight: 750;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  button {
+    border: 0;
+    color: #050607;
+    background: #f1f1f1;
+  }
+
+  .action-buttons a {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #454a52;
+    color: #eeeeee;
+    background: #1d2025;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .data-window {
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .window-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: end;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.11);
+  }
+
+  h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 560;
+  }
+
+  .window-head p {
+    margin: 5px 0 0;
+    color: #b2b2b2;
+  }
+
+  .window-head span {
+    color: #c0c0c0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .ip-table { display: grid; }
+
+  .ip-row {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr .75fr .65fr .65fr;
+    gap: 14px;
+    align-items: center;
+    padding: 18px 20px;
+    border-top: 1px solid rgba(255,255,255,.085);
+  }
+
+  .ip-head {
+    padding: 11px 20px;
+    border-top: 0;
+    color: #b5b5b5;
+    background: rgba(255,255,255,.04);
+    font-size: 12px;
+  }
+
+  .ip-scroll {
+    max-height: 330px;
+    overflow: auto;
+  }
+
+  .ip-row.current {
+    background: rgba(255,255,255,.045);
+    box-shadow: inset 3px 0 0 rgba(255,255,255,.72);
+  }
+
+  .ip-row b,
+  .ip-row small {
+    display: block;
+  }
+
+  .ip-row b {
+    color: #fff;
+    font-weight: 520;
+  }
+
+  .ip-row small {
+    margin-top: 5px;
+    color: #b8b8b8;
+    font-size: 13px;
+  }
+
+  .ip-row span:first-child b,
+  .ip-row span:nth-child(4) b {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  .side-stack {
+    display: grid;
+    gap: 14px;
+  }
+
+  .compact-window {
+    padding: 17px;
+  }
+
+  .compact-window h2 {
+    margin-bottom: 12px;
+    font-size: 20px;
+  }
+
+  .node-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .node-list > div {
+    border-top: 1px solid rgba(255,255,255,.11);
+    padding-top: 10px;
+  }
+
+  .node-list div div,
+  .traffic-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .node-list p,
+  .node-list small {
+    margin: 4px 0 0;
+    color: #b7b7b7;
+    font-size: 13px;
+  }
+
+  .traffic-summary {
+    color: #ededed;
+    margin-bottom: 12px;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: end;
+    gap: 6px;
+    height: 62px;
+  }
+
+  .bar-chart i {
+    flex: 1;
+    min-height: 8px;
+    border-radius: 4px 4px 0 0;
+    background: #666;
+  }
+
+  .bar-chart i:nth-child(6) {
+    background: #f0f0f0;
+    box-shadow: 0 0 16px rgba(255,255,255,.26);
+  }
+
+  .docs-window {
+    position: relative;
+    z-index: 1;
+    margin-top: 18px;
+  }
+
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px 20px 20px;
+  }
+
+  details {
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px;
+    padding: 14px;
+    background: rgba(255,255,255,.025);
+  }
+
+  summary {
+    color: #fff;
+    cursor: pointer;
+    font-weight: 650;
+  }
+
+  details p,
+  details li {
+    color: #c9c9c9;
+    line-height: 1.65;
+  }
+
+  details ol {
+    padding-left: 20px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html) { scroll-behavior: auto; }
+  }
+
+  @media (max-width: 980px) {
+    .workspace-grid,
+    .action-panel,
+    .docs-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .side-stack {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .subscription-page {
+      padding: 22px 14px 32px;
+    }
+
+    .identity p {
+      font-size: 11px;
+      letter-spacing: .12em;
+    }
+
+    .portal-nav {
+      display: flex;
+      overflow-x: auto;
+      padding-bottom: 14px;
+    }
+
+    .portal-nav a {
+      min-width: 76px;
+    }
+
+    .action-buttons,
+    .side-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .ip-head {
+      display: none;
+    }
+
+    .ip-row,
+    .ip-row.current {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .window-head {
+      display: grid;
+    }
+  }
+</style>

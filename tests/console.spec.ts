@@ -11,3 +11,16 @@ test('console page opens and exit command returns home', async ({ page }) => {
 
   await expect(page).toHaveURL('/');
 });
+
+test('console exposes subscription center entry and command', async ({ page }) => {
+  await page.goto('/about');
+
+  await expect(page.getByLabel('Subscription Center module')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open Workspace' })).toHaveAttribute('href', '/subscribe');
+
+  const commandInput = page.getByRole('textbox', { name: 'Console command' });
+  await commandInput.fill('subscribe');
+  await commandInput.press('Enter');
+
+  await expect(page.getByText('Open Subscription Workspace')).toBeVisible();
+});

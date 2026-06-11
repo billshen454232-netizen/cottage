@@ -1,12 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { planItems, toolItems, workItems } from '../data/console';
+import { planItems, subscriptionModule, toolItems, workItems } from '../data/console';
 import { services } from '../data/services';
 
 const commands = [
   ['help', 'Show this command list.'],
   ['services', 'List service entrypoints.'],
   ['tools', 'List personal operation tools.'],
+  ['subscribe', 'Open Subscription Center workspace.'],
   ['health', 'Fetch health API status.'],
   ['work', 'Show recent project work.'],
   ['plan', 'Show current learning plan.'],
@@ -34,6 +35,15 @@ const commands = [
           <p><span class="tag role">Role</span> TestDev / Ops / Backend tooling</p>
           <p><span class="tag stack">Stack</span> Astro · Cloudflare Pages · FastAPI · Nginx · GitHub Actions</p>
           <p><span class="tag ok">Ready</span> Type <span class="command-inline">help</span> to inspect available commands.</p>
+          <div class="subscription-module" aria-label="Subscription Center module">
+            <div>
+              <span class="tag ok">{subscriptionModule.status}</span>
+              <strong>{subscriptionModule.name}</strong>
+              <p>{subscriptionModule.summary}</p>
+              <small>{subscriptionModule.metrics.join(' · ')}</small>
+            </div>
+            <a href={subscriptionModule.url}>Open Workspace</a>
+          </div>
         </div>
 
         <form class="terminal-input-line" id="consoleForm" autocomplete="off">
@@ -44,7 +54,7 @@ const commands = [
     </section>
   </main>
 
-  <script define:vars={{ commands, planItems, services, toolItems, workItems }}>
+  <script define:vars={{ commands, planItems, services, subscriptionModule, toolItems, workItems }}>
     const output = document.getElementById('terminalOutput');
     const form = document.getElementById('consoleForm');
     const input = document.getElementById('consoleInput');
@@ -110,6 +120,15 @@ const commands = [
       </ul>
     `;
 
+    const renderSubscribe = () => `
+      <div class="subscription-output">
+        <p><span class="tag ok">${escapeHtml(subscriptionModule.status)}</span> ${escapeHtml(subscriptionModule.name)}</p>
+        <p>${escapeHtml(subscriptionModule.summary)}</p>
+        <p class="muted">${subscriptionModule.metrics.map(escapeHtml).join('    ')}</p>
+        <p><a href="${escapeHtml(subscriptionModule.url)}">Open Subscription Workspace</a></p>
+      </div>
+    `;
+
     const renderHealth = async () => {
       append('<p><span class="tag system">System</span> fetching https://health.ttlink.asia/api/v1/health ...</p>');
 
@@ -170,6 +189,11 @@ const commands = [
 
       if (command === 'tools') {
         append(renderTools());
+        return;
+      }
+
+      if (command === 'subscribe') {
+        append(renderSubscribe());
         return;
       }
 
@@ -396,6 +420,51 @@ const commands = [
     gap: 4px;
     margin: 8px 0 18px;
     padding: 0 0 0 18px;
+  }
+
+
+  .subscription-module,
+  .subscription-output {
+    display: grid;
+    gap: 10px;
+    margin: 14px 0 18px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px;
+    padding: 14px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .subscription-module {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .subscription-module strong {
+    color: #f8fafc;
+  }
+
+  .subscription-module p,
+  .subscription-output p {
+    margin: 6px 0 0;
+  }
+
+  .subscription-module small {
+    display: block;
+    margin-top: 6px;
+    color: #a1a1aa;
+  }
+
+  .subscription-module > a {
+    border: 1px solid rgba(163, 230, 53, 0.45);
+    border-radius: 10px;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 680px) {
+    .subscription-module {
+      grid-template-columns: 1fr;
+    }
   }
 
   .service-output,
