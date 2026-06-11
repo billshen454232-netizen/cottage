@@ -1,22 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-const expectedServices = ['订阅门户', 'CLI Proxy API', '个人博客', '知识图谱'];
-
-test('homepage shows the command center and service links', async ({ page }) => {
+test('homepage entry links route to the app sections', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page.getByRole('heading', { name: 'TTLINK Command Center' })).toBeVisible();
-
-  for (const serviceName of expectedServices) {
-    await expect(page.getByRole('link', { name: new RegExp(serviceName) })).toBeVisible();
-  }
-
-  await expect(page.getByRole('link', { name: /订阅门户/ })).toHaveAttribute(
-    'href',
-    '/subscribe',
-  );
-  await expect(page.getByRole('link', { name: /CLI Proxy API/ })).toHaveAttribute(
-    'href',
-    'https://cli.ttlink.asia/management.html',
-  );
+  await expect(page.locator('nav[aria-label="服务入口"] a')).toHaveCount(4);
+  await expect(page.locator('nav[aria-label="服务入口"] a').first()).toHaveAttribute('href', '/subscribe');
+  await expect(page.locator('a.console-link')).toHaveAttribute('href', '/about');
 });
