@@ -12,6 +12,10 @@ import {
 
 <Layout>
   <main class="subscription-page">
+    <div class="return-links" aria-label="Workspace navigation">
+      <a href="/">返回主站</a>
+      <a href="/about">返回 Console</a>
+    </div>
     <div class="star star-a" aria-hidden="true"></div>
     <div class="star star-b" aria-hidden="true"></div>
     <div class="star star-c" aria-hidden="true"></div>
@@ -195,9 +199,34 @@ import {
   .portal-nav,
   .action-panel,
   .workspace-grid,
-  .docs-window {
+  .docs-window,
+  .return-links {
     position: relative;
     z-index: 1;
+  }
+
+  .return-links {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .return-links a {
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 999px;
+    padding: 7px 11px;
+    color: #cfcfcf;
+    background: rgba(16,18,22,.72);
+    font-size: 13px;
+    text-decoration: none;
+  }
+
+  .return-links a:hover,
+  .return-links a:focus-visible {
+    color: #fff;
+    border-color: rgba(255,255,255,.32);
+    box-shadow: 0 0 16px rgba(255,255,255,.16);
   }
 
   .identity {
