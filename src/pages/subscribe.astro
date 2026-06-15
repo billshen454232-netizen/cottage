@@ -67,7 +67,7 @@ import {
             <span>Today</span>
             <span>Node</span>
           </div>
-          <div class="ip-scroll">
+          <div class="ip-scroll" id="ipActivityRows">
             {ipStats.map((item, index) => (
               <div class:list={['ip-row', index === 0 && 'current']} role="row">
                 <span><b>{item.ip}</b><small>{item.label}</small></span>
@@ -131,6 +131,7 @@ import {
   const copyButton = document.getElementById('copyButton');
   const updatedAt = document.getElementById('statusUpdatedAt');
   const subscriptionStatusPill = document.getElementById('subscriptionStatusPill');
+  const ipActivityRows = document.getElementById('ipActivityRows');
   copyButton?.addEventListener('click', async () => {
     const url = copyButton.getAttribute('data-copy-url') ?? '';
     try {
@@ -144,6 +145,30 @@ import {
       copyButton.textContent = '复制订阅';
     }, 1400);
   });
+
+  function renderClientRows(clients) {
+    if (!ipActivityRows || !Array.isArray(clients) || clients.length === 0) return;
+
+    ipActivityRows.innerHTML = clients
+      .slice(0, 12)
+      .map((client, index) => {
+        const ip = typeof client.ip === 'string' ? client.ip : 'unknown';
+        const label = typeof client.label === 'string' ? client.label : ip;
+        const lastSeen = typeof client.lastSeen === 'string' ? client.lastSeen : 'unknown';
+        const node = typeof client.node === 'string' ? client.node : 'subscription';
+
+        return `
+          <div class="ip-row ${index === 0 ? 'current' : ''}" role="row">
+            <span><b>${ip}</b><small>${label}</small></span>
+            <span><b>unknown</b><small>ISP / ASN unavailable</small></span>
+            <span><b>${lastSeen}</b><small>from status JSON</small></span>
+            <span><b>--</b><small>traffic pending</small></span>
+            <span><b>${node}</b><small>nginx access log</small></span>
+          </div>
+        `;
+      })
+      .join('');
+  }
 
   async function loadSubscriptionStatus() {
     if (!updatedAt) return;
@@ -161,6 +186,8 @@ import {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
+      renderClientRows(data.clients);
+
       if (typeof data.generatedAt === 'string') {
         updatedAt.textContent = `sample JSON · generated ${data.generatedAt}`;
       }
