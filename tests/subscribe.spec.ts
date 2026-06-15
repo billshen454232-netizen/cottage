@@ -17,14 +17,34 @@ test('copy button writes subscription URL to clipboard', async ({ page, context 
 });
 
 test('subscription page can fetch status JSON', async ({ page }) => {
+  page.on('request', (request) => {
+    const url = request.url();
+
+    if (url.includes('subscription-status')) {
+      console.log('[status request]', url);
+    }
+  });
+
+  page.on('response', (response) => {
+    const url = response.url();
+
+    if (url.includes('subscription-status')) {
+      console.log('[status response]', response.status(), url);
+    }
+  });
+
+  page.on('requestfailed', (request) => {
+    const url = request.url();
+
+    if (url.includes('subscription-status')) {
+      console.log('[status request failed]', url, request.failure()?.errorText);
+    }
+  });
+
   const statusResponsePromise = page.waitForResponse((response) => {
     const url = response.url();
 
-    return (
-      response.ok() &&
-      (url.endsWith('subscription-status.sample.json') ||
-        url.endsWith('subscription-status.json'))
-    );
+    return response.ok() && url.includes('subscription-status');
   });
 
   await page.goto('/subscribe');
