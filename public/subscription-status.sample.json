@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-11T17:30:00+08:00",
+  "subscription": {
+    "name": "TTLINK Personal Ops",
+    "url": "https://subs.ttlink.asia/subs/subs-ff5188e712b3ed8b.yaml",
+    "status": "active",
+    "nodeCount": 2,
+    "lastModified": "2026-06-11T16:30:00+08:00",
+    "containsHy2": true,
+    "containsVless": true
+  },
+  "services": [
+    { "name": "nginx", "status": "active" },
+    { "name": "xray", "status": "active" },
+    { "name": "hysteria", "status": "active" }
+  ],
+  "ports": [
+    { "name": "nginx-https", "protocol": "tcp", "port": 443, "status": "listening" },
+    { "name": "hysteria-quic", "protocol": "udp", "port": 443, "status": "listening" },
+    { "name": "xray-vless", "protocol": "tcp", "host": "127.0.0.1", "port": 10000, "status": "listening" }
+  ],
+  "nodes": [
+    {
+      "name": "hy2-ttlink",
+      "type": "hysteria2",
+      "domain": "hy.ttlink.asia",
+      "status": "online",
+      "source": "hysteria-traffic-api",
+      "traffic": {
+        "uplinkBytes": 0,
+        "downlinkBytes": 0,
+        "usedBytes": 0
+      },
+      "online": {
+        "clientCount": 1
+      }
+    },
+    {
+      "name": "vless-ttlink",
+      "type": "vless",
+      "domain": "vless.ttlink.asia",
+      "status": "online",
+      "source": "xray-stats-api",
+      "traffic": {
+        "uplinkBytes": 0,
+        "downlinkBytes": 0,
+        "usedBytes": 0
+      },
+      "online": {
+        "clientCount": 1
+      }
+    }
+  ],
+  "clients": [
+    {
+      "id": "home-pc",
+      "label": "Home PC",
+      "ip": "192.168.1.24",
+      "lastSeen": "2026-06-11T17:28:00+08:00",
+      "node": "hy2-ttlink",
+      "traffic": {
+        "todayBytes": 3006477107,
+        "monthBytes": 79671661363
+      }
+    },
+    {
+      "id": "laptop",
+      "label": "Laptop",
+      "ip": "172.16.8.12",
+      "lastSeen": "2026-06-11T17:12:00+08:00",
+      "node": "vless-ttlink",
+      "traffic": {
+        "todayBytes": 1181116006,
+        "monthBytes": 33930241638
+      }
+    }
+  ],
+  "traffic": {
+    "todayBytes": 4509715660,
+    "monthBytes": 138083352985,
+    "uniqueIpsToday": 3,
+    "uniqueIpsMonth": 9,
+    "sevenDay": [
+      { "day": "Mon", "bytes": 19327352832 },
+      { "day": "Tue", "bytes": 34359738368 },
+      { "day": "Wed", "bytes": 25769803776 },
+      { "day": "Thu", "bytes": 49392123904 },
+      { "day": "Fri", "bytes": 40802189312 },
+      { "day": "Sat", "bytes": 66571993088 },
+      { "day": "Sun", "bytes": 57982058496 }
+    ]
+  },
+  "errors": []
+}
