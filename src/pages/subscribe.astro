@@ -38,8 +38,8 @@ import {
       <div>
         <div class="action-line">
           <strong>Active subscription</strong>
-          <span class="status-pill">{subscriptionOverview.statusLabel}</span>
-          <small>{subscriptionOverview.urlVisibilityLabel} · updated {subscriptionOverview.lastUpdated}</small>
+          <span id="subscriptionStatusPill" class="status-pill">{subscriptionOverview.statusLabel}</span>
+          <small id="statusUpdatedAt">{subscriptionOverview.urlVisibilityLabel} · updated {subscriptionOverview.lastUpdated}</small>
         </div>
         <p>复制当前 Clash/Mihomo 订阅，或打开 active YAML。</p>
       </div>
@@ -128,22 +128,58 @@ import {
   </main>
 
   <script>
-    const copyButton = document.getElementById('copyButton');
+  const copyButton = document.getElementById('copyButton');
+  const updatedAt = document.getElementById('statusUpdatedAt');
+  const subscriptionStatusPill = document.getElementById('subscriptionStatusPill');
+  copyButton?.addEventListener('click', async () => {
+    const url = copyButton.getAttribute('data-copy-url') ?? '';
+    try {
+      await navigator.clipboard.writeText(url);
+      copyButton.textContent = '已复制';
+    } catch {
+      copyButton.textContent = '复制失败';
+    }
 
-    copyButton?.addEventListener('click', async () => {
-      const url = copyButton.getAttribute('data-copy-url') ?? '';
-      try {
-        await navigator.clipboard.writeText(url);
-        copyButton.textContent = '已复制';
-      } catch {
-        copyButton.textContent = '复制失败';
+    setTimeout(() => {
+      copyButton.textContent = '复制订阅';
+    }, 1400);
+  });
+
+  async function loadSubscriptionStatus() {
+    if (!updatedAt) return;
+
+    try {
+      const statusUrl =
+        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? '/subscription-status.sample.json'
+        : 'https://subs.ttlink.asia/subs/subscription-status.json';
+
+      const response = await fetch(statusUrl);
+
+
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      if (typeof data.generatedAt === 'string') {
+        updatedAt.textContent = `sample JSON · generated ${data.generatedAt}`;
       }
+      const subscription = data.subscription;
+      if (
+        subscriptionStatusPill &&
+        subscription &&
+        typeof subscription.status === 'string' &&
+        typeof subscription.nodeCount === 'number'
+      ) {
+        subscriptionStatusPill.textContent = `${subscription.status.toUpperCase()} · ${subscription.nodeCount} NODES`;
+      }
+    } catch {
+      updatedAt.textContent = `${updatedAt.textContent} · sample unavailable`;
+    }
+  }
 
-      setTimeout(() => {
-        copyButton.textContent = '复制订阅';
-      }, 1400);
-    });
-  </script>
+  loadSubscriptionStatus();
+</script>
 </Layout>
 
 <style>

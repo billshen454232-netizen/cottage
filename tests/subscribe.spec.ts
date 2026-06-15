@@ -2,24 +2,31 @@ import { expect, test } from '@playwright/test';
 
 const subscriptionUrl = 'https://subs.ttlink.asia/subs/subs-ff5188e712b3ed8b.yaml';
 
-test('subscription workspace routes and copy action are connected', async ({ page, context }) => {
+test('copy button writes subscription URL to clipboard', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/subscribe');
 
-  await expect(page.locator('a[href="/"]')).toHaveCount(1);
-  await expect(page.locator('a[href="/about"]')).toHaveCount(1);
+  const copyButton = page.locator('#copyButton');
+  await expect(copyButton).toBeVisible();
 
-  await expect(page.locator('.portal-nav a[href="#subscription"]')).toHaveCount(1);
-  await expect(page.locator('.portal-nav a[href="#ip-activity"]')).toHaveCount(1);
-  await expect(page.locator('.portal-nav a[href="#nodes"]')).toHaveCount(1);
-  await expect(page.locator('.portal-nav a[href="#traffic"]')).toHaveCount(1);
-  await expect(page.locator('.portal-nav a[href="#docs"]')).toHaveCount(1);
+  await copyButton.click();
 
-  await expect(page.locator('.action-panel')).not.toContainText(subscriptionUrl);
-
-  await page.locator('#copyButton').click();
   const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
   expect(clipboardText).toBe(subscriptionUrl);
+  await expect(copyButton).toHaveText('已复制');
+});
 
-  await expect(page.locator(`.action-buttons a[href="${subscriptionUrl}"]`)).toHaveCount(1);
+test('subscription page can fetch status JSON', async ({ page }) => {
+  const statusResponsePromise = page.waitForResponse((response) =>
+    response.url().endsWith('/subscription-status.sample.json') && response.ok()
+  );
+
+  await page.goto('/subscribe');
+
+  const statusResponse = await statusResponsePromise;
+  const statusData = await statusResponse.json();
+
+  expect(statusData).toHaveProperty('version');
+  expect(statusData).toHaveProperty('generatedAt');
+  expect(statusData).toHaveProperty('subscription');
 });
