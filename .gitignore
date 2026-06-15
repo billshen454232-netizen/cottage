@@ -33,3 +33,8 @@ blob-report/
 __pycache__/
 .pytest_cache/
 *.pyc
+
+# AI catch
+.agents/
+.claude/
+.superpowers/

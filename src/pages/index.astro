@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { services } from '../data/services';
+import { homeContent } from '../data/site';
 
 const onlineCount = services.filter((service) => service.status === '已上线').length;
 ---
@@ -10,11 +11,11 @@ const onlineCount = services.filter((service) => service.status === '已上线')
     <div class="ambient-grid" aria-hidden="true"></div>
 
     <section class="profile-card" aria-label="TTLINK personal ops homepage">
-      <p class="kicker">Personal Ops Hub</p>
-      <h1>TTLINK Command Center</h1>
-      <p class="signature">Tools · Knowledge · Automation · Operations</p>
+      <p class="kicker">{homeContent.kicker}</p>
+      <h1>{homeContent.title}</h1>
+      <p class="signature">{homeContent.signature}</p>
 
-      <nav class="link-row" aria-label="服务入口">
+      <nav class="link-row" aria-label={homeContent.serviceNavLabel}>
         {services.map((service) => (
           <a href={service.url} target="_blank" rel="noreferrer" aria-label={service.name}>
             <span class:list={['link-status', service.status === '已上线' ? 'online' : 'planned']}></span>
@@ -25,11 +26,10 @@ const onlineCount = services.filter((service) => service.status === '已上线')
 
       <div class="ops-note" aria-label="运行状态摘要">
         <span>{onlineCount} services online</span>
-        <span>health.ttlink.asia ready</span>
-        <span>CI guarded</span>
+        {homeContent.statusItems.map((item) => <span>{item}</span>)}
       </div>
 
-      <a class="console-link" href="/about">enter console →</a>
+      <a class="console-link" href="/about">{homeContent.consoleLabel}</a>
     </section>
   </main>
 </Layout>

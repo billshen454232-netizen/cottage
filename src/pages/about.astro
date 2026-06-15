@@ -1,13 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { planItems, subscriptionModule, toolItems, workItems } from '../data/console';
-import { services } from '../data/services';
+import { planItems, workItems } from '../data/console';
+import { scriptTools, services } from '../data/services';
+import { consoleContent, siteProfile } from '../data/site';
 
 const commands = [
   ['help', 'Show this command list.'],
   ['services', 'List service entrypoints.'],
-  ['tools', 'List personal operation tools.'],
-  ['subscribe', 'Open Subscription Center workspace.'],
+  ['tools', 'List script-only operation tools.'],
   ['health', 'Fetch health API status.'],
   ['work', 'Show recent project work.'],
   ['plan', 'Show current learning plan.'],
@@ -18,43 +18,34 @@ const commands = [
 
 <Layout>
   <main class="terminal-stage">
-    <section class="terminal-window" aria-label="My Ops Console">
+    <section class="terminal-window" aria-label={consoleContent.title}>
       <header class="terminal-titlebar">
         <div class="traffic-lights" aria-hidden="true">
           <span class="red"></span>
           <span class="yellow"></span>
           <span class="green"></span>
         </div>
-        <span>My Ops Console</span>
+        <span>{consoleContent.title}</span>
       </header>
 
       <div class="terminal-body" id="terminalBody">
         <div id="terminalOutput">
-          <p><span class="tag system">System</span> booting TTLINK Ops Console ...</p>
-          <p><span class="tag user">User</span> v_shentao</p>
-          <p><span class="tag role">Role</span> TestDev / Ops / Backend tooling</p>
-          <p><span class="tag stack">Stack</span> Astro · Cloudflare Pages · FastAPI · Nginx · GitHub Actions</p>
-          <p><span class="tag ok">Ready</span> Type <span class="command-inline">help</span> to inspect available commands.</p>
-          <div class="subscription-module" aria-label="Subscription Center module">
-            <div>
-              <span class="tag ok">{subscriptionModule.status}</span>
-              <strong>{subscriptionModule.name}</strong>
-              <p>{subscriptionModule.summary}</p>
-              <small>{subscriptionModule.metrics.join(' · ')}</small>
-            </div>
-            <a href={subscriptionModule.url}>Open Workspace</a>
-          </div>
+          <p><span class="tag system">System</span> {consoleContent.bootLine}</p>
+          <p><span class="tag user">User</span> {siteProfile.ownerName}</p>
+          <p><span class="tag role">Role</span> {siteProfile.role}</p>
+          <p><span class="tag stack">Stack</span> {siteProfile.stack}</p>
+          <p><span class="tag ok">Ready</span> {consoleContent.readyHint}</p>
         </div>
 
         <form class="terminal-input-line" id="consoleForm" autocomplete="off">
-          <span class="prompt">➜</span><span class="cwd">Console</span><span class="typed-proxy" id="typedProxy"></span><span class="cursor" aria-hidden="true"></span>
+          <span class="prompt">➜</span><span class="cwd">{consoleContent.promptLabel}</span><span class="typed-proxy" id="typedProxy"></span><span class="cursor" aria-hidden="true"></span>
           <input id="consoleInput" name="command" aria-label="Console command" autofocus spellcheck="false" />
         </form>
       </div>
     </section>
   </main>
 
-  <script define:vars={{ commands, planItems, services, subscriptionModule, toolItems, workItems }}>
+  <script define:vars={{ commands, consoleContent, planItems, scriptTools, services, workItems }}>
     const output = document.getElementById('terminalOutput');
     const form = document.getElementById('consoleForm');
     const input = document.getElementById('consoleInput');
@@ -82,7 +73,7 @@ const commands = [
     };
 
     const printPrompt = (command) => {
-      append(`<p><span class="prompt">➜</span> <span class="cwd">Console</span> ${escapeHtml(command)}</p>`);
+      append(`<p><span class="prompt">➜</span> <span class="cwd">${escapeHtml(consoleContent.promptLabel)}</span> ${escapeHtml(command)}</p>`);
     };
 
     const renderList = (items) =>
@@ -110,7 +101,7 @@ const commands = [
 
     const renderTools = () => `
       <ul class="tool-output">
-        ${toolItems.map((tool) => `
+        ${scriptTools.map((tool) => `
           <li>
             <a href="${escapeHtml(tool.url)}" target="_blank" rel="noreferrer">${escapeHtml(tool.name)}</a>
             <p>${escapeHtml(tool.description)}</p>
@@ -118,15 +109,6 @@ const commands = [
           </li>
         `).join('')}
       </ul>
-    `;
-
-    const renderSubscribe = () => `
-      <div class="subscription-output">
-        <p><span class="tag ok">${escapeHtml(subscriptionModule.status)}</span> ${escapeHtml(subscriptionModule.name)}</p>
-        <p>${escapeHtml(subscriptionModule.summary)}</p>
-        <p class="muted">${subscriptionModule.metrics.map(escapeHtml).join('    ')}</p>
-        <p><a href="${escapeHtml(subscriptionModule.url)}">Open Subscription Workspace</a></p>
-      </div>
     `;
 
     const renderHealth = async () => {
@@ -189,11 +171,6 @@ const commands = [
 
       if (command === 'tools') {
         append(renderTools());
-        return;
-      }
-
-      if (command === 'subscribe') {
-        append(renderSubscribe());
         return;
       }
 
@@ -422,50 +399,6 @@ const commands = [
     padding: 0 0 0 18px;
   }
 
-
-  .subscription-module,
-  .subscription-output {
-    display: grid;
-    gap: 10px;
-    margin: 14px 0 18px;
-    border: 1px solid rgba(255,255,255,0.14);
-    border-radius: 14px;
-    padding: 14px;
-    background: rgba(255,255,255,0.04);
-  }
-
-  .subscription-module {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .subscription-module strong {
-    color: #f8fafc;
-  }
-
-  .subscription-module p,
-  .subscription-output p {
-    margin: 6px 0 0;
-  }
-
-  .subscription-module small {
-    display: block;
-    margin-top: 6px;
-    color: #a1a1aa;
-  }
-
-  .subscription-module > a {
-    border: 1px solid rgba(163, 230, 53, 0.45);
-    border-radius: 10px;
-    padding: 8px 12px;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 680px) {
-    .subscription-module {
-      grid-template-columns: 1fr;
-    }
-  }
 
   .service-output,
   .tool-output {

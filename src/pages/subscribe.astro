@@ -473,16 +473,16 @@ import {
 
   .ip-table { display: grid; }
 
-  .ip-row {
-    display: grid;
-    grid-template-columns: 1.15fr 1fr .75fr .65fr .65fr;
-    gap: 14px;
-    align-items: center;
-    padding: 18px 20px;
-    border-top: 1px solid rgba(255,255,255,.085);
+  :global(.ip-row) {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr .75fr .65fr .65fr;
+  gap: 14px;
+  align-items: center;
+  padding: 18px 20px;
+  border-top: 1px solid rgba(255,255,255,.085);
   }
 
-  .ip-head {
+  :global(.ip-head) {
     padding: 11px 20px;
     border-top: 0;
     color: #b5b5b5;
@@ -495,29 +495,29 @@ import {
     overflow: auto;
   }
 
-  .ip-row.current {
+  :global(.ip-row.current) {
     background: rgba(255,255,255,.045);
     box-shadow: inset 3px 0 0 rgba(255,255,255,.72);
   }
 
-  .ip-row b,
-  .ip-row small {
+  :global(.ip-row b),
+  :global(.ip-row small) {
     display: block;
   }
 
-  .ip-row b {
+  :global(.ip-row b) {
     color: #fff;
     font-weight: 520;
   }
 
-  .ip-row small {
+  :global(.ip-row small) {
     margin-top: 5px;
     color: #b8b8b8;
     font-size: 13px;
   }
 
-  .ip-row span:first-child b,
-  .ip-row span:nth-child(4) b {
+  :global(.ip-row span:first-child b),
+  :global(.ip-row span:nth-child(4) b) {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
@@ -665,8 +665,8 @@ import {
       display: none;
     }
 
-    .ip-row,
-    .ip-row.current {
+    :global(.ip-row),
+    :global(.ip-row.current) {
       grid-template-columns: 1fr;
       gap: 12px;
     }

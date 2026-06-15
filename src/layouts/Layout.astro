@@ -1,13 +1,17 @@
+---
+import { siteMeta } from '../data/site';
+---
+
 <!doctype html>
-<html lang="zh-CN">
+<html lang={siteMeta.language}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="description" content="TTLINK Personal Ops Hub" />
-    <title>TTLINK Command Center</title>
+    <meta name="description" content={siteMeta.description} />
+    <title>{siteMeta.title}</title>
   </head>
   <body>
     <slot />
