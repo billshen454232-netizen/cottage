@@ -17,9 +17,15 @@ test('copy button writes subscription URL to clipboard', async ({ page, context 
 });
 
 test('subscription page can fetch status JSON', async ({ page }) => {
-  const statusResponsePromise = page.waitForResponse((response) =>
-    response.url().endsWith('/subscription-status.sample.json') && response.ok()
-  );
+  const statusResponsePromise = page.waitForResponse((response) => {
+    const url = response.url();
+
+    return (
+      response.ok() &&
+      (url.endsWith('subscription-status.sample.json') ||
+        url.endsWith('subscription-status.json'))
+    );
+  });
 
   await page.goto('/subscribe');
 
