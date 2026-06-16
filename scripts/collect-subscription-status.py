@@ -23,11 +23,11 @@ from typing import Any
 DEFAULT_SUBS_DIR = Path("/etc/letsencrypt/subs")
 DEFAULT_SUBS_BASE_URL = "https://subs.ttlink.asia/subs"
 DEFAULT_ACCESS_LOG = Path("/var/log/nginx/access.log")
-SUBSCRIPTION_PATH_MARKERS = (
-    "/subs.html",
-    "/subs/subscription-status.json",
-    "/subs/subs-",
+DEFAULT_KNOWN_CLIENTS = Path("/opt/ttlink-known-clients.json")
+PROXY_PATH_RULES = (
+    ("/vless-", "vless"),
 )
+EXCLUDED_CLIENT_IPS = {"127.0.0.1", "::1", "47.253.212.27"}
 
 
 def now_iso() -> str:
@@ -84,26 +84,46 @@ def collect_ports() -> list[dict[str, Any]]:
     return collected
 
 
-def collect_subscription_clients(access_log: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+def load_known_clients(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        return {}
+
+    known: dict[str, str] = {}
+    for label, ips in data.items():
+        if not isinstance(label, str) or not isinstance(ips, list):
+            continue
+        for ip in ips:
+            if isinstance(ip, str):
+                known[ip] = label
+    return known
+
+
+def collect_subscription_clients(access_log: Path, known_clients: dict[str, str]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     traffic = {
-        "todayBytes": None,
+        "todayBytes": 0,
         "monthBytes": None,
         "uniqueIpsToday": None,
         "uniqueIpsMonth": None,
         "sevenDay": [],
     }
     if not access_log.exists():
+        traffic["todayBytes"] = None
         return [], traffic
 
     today = datetime.now(timezone.utc).astimezone().date()
-    seen: dict[str, datetime] = {}
+    seen: dict[str, dict[str, Any]] = {}
     line_pattern = re.compile(
-        r'^(?P<ip>\S+) \S+ \S+ \[(?P<time>[^\]]+)\] "(?P<method>\S+) (?P<path>\S+) [^"]+"'
+        r'^(?P<ip>\S+) \S+ \S+ \[(?P<time>[^\]]+)\] "(?P<method>\S+) (?P<path>\S+) [^"]+" '
+        r'(?P<status>\d{3}) (?P<body_bytes>\d+)'
     )
 
     with access_log.open(encoding="utf-8", errors="ignore") as file:
         for line in file:
-            if not any(marker in line for marker in SUBSCRIPTION_PATH_MARKERS):
+            if not any(marker in line for marker, _node in PROXY_PATH_RULES):
                 continue
 
             match = line_pattern.match(line)
@@ -115,27 +135,40 @@ def collect_subscription_clients(access_log: Path) -> tuple[list[dict[str, Any]]
                 continue
 
             path = match.group("path")
-            if not any(path.startswith(marker) for marker in SUBSCRIPTION_PATH_MARKERS):
+            node = next((node for marker, node in PROXY_PATH_RULES if path.startswith(marker)), None)
+            if node is None:
                 continue
 
             ip = match.group("ip")
+            if ip in EXCLUDED_CLIENT_IPS:
+                continue
+
+            body_bytes = int(match.group("body_bytes"))
+            traffic["todayBytes"] += body_bytes
+
             previous = seen.get(ip)
-            if previous is None or seen_at > previous:
-                seen[ip] = seen_at
+            if previous is None:
+                seen[ip] = {"lastSeen": seen_at, "node": node, "todayBytes": body_bytes}
+            else:
+                previous["todayBytes"] += body_bytes
+                if seen_at > previous["lastSeen"]:
+                    previous["lastSeen"] = seen_at
+                    previous["node"] = node
 
     clients = [
         {
             "id": f"ip-{ip}",
-            "label": ip,
+            "label": known_clients.get(ip, ip),
             "ip": ip,
-            "lastSeen": seen_at.isoformat(timespec="seconds"),
-            "node": "subscription",
+            "known": ip in known_clients,
+            "lastSeen": item["lastSeen"].isoformat(timespec="seconds"),
+            "node": item["node"],
             "traffic": {
-                "todayBytes": None,
+                "todayBytes": item["todayBytes"],
                 "monthBytes": None,
             },
         }
-        for ip, seen_at in sorted(seen.items(), key=lambda item: item[1], reverse=True)
+        for ip, item in sorted(seen.items(), key=lambda entry: entry[1]["lastSeen"], reverse=True)
     ]
     traffic["uniqueIpsToday"] = len(seen)
     return clients, traffic
@@ -223,9 +256,10 @@ def node_statuses() -> list[dict[str, Any]]:
     ]
 
 
-def build_status(yaml_path: Path | None, subscription_url: str, access_log: Path) -> dict[str, Any]:
+def build_status(yaml_path: Path | None, subscription_url: str, access_log: Path, known_clients_path: Path) -> dict[str, Any]:
     subscription, errors = read_subscription(yaml_path, subscription_url)
-    clients, traffic = collect_subscription_clients(access_log)
+    known_clients = load_known_clients(known_clients_path)
+    clients, traffic = collect_subscription_clients(access_log, known_clients)
     return {
         "version": 1,
         "generatedAt": now_iso(),
@@ -259,6 +293,12 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_ACCESS_LOG,
         help="Nginx access log path used for lightweight subscription IP activity",
     )
+    parser.add_argument(
+        "--known-clients",
+        type=Path,
+        default=DEFAULT_KNOWN_CLIENTS,
+        help="JSON file mapping display labels to known IP lists",
+    )
     return parser.parse_args()
 
 
@@ -266,7 +306,7 @@ def main() -> None:
     args = parse_args()
     yaml_path = args.yaml or discover_subscription_yaml()
     subscription_url = subscription_url_for(yaml_path, args.subscription_url)
-    status = build_status(yaml_path, subscription_url, args.access_log)
+    status = build_status(yaml_path, subscription_url, args.access_log, args.known_clients)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Generated {args.out}")

@@ -56,7 +56,7 @@ import {
             <h2 id="ip-heading">IP 使用窗口</h2>
             <p>最后活动、所在地、ISP、ASN、节点和用量。</p>
           </div>
-          <span>{subscriptionOverview.uniqueIpsToday} today / {subscriptionOverview.uniqueIpsMonth} month</span>
+          <label class="unknown-filter"><input id="unknownOnlyToggle" type="checkbox" /> 只看未知 IP</label>
         </header>
 
         <div class="ip-table" role="table" aria-label="IP usage activity">
@@ -132,6 +132,8 @@ import {
   const updatedAt = document.getElementById('statusUpdatedAt');
   const subscriptionStatusPill = document.getElementById('subscriptionStatusPill');
   const ipActivityRows = document.getElementById('ipActivityRows');
+  const unknownOnlyToggle = document.getElementById('unknownOnlyToggle');
+  let latestClients = [];
   copyButton?.addEventListener('click', async () => {
     const url = copyButton.getAttribute('data-copy-url') ?? '';
     try {
@@ -147,28 +149,46 @@ import {
   });
 
   function renderClientRows(clients) {
-    if (!ipActivityRows || !Array.isArray(clients) || clients.length === 0) return;
+    if (!ipActivityRows || !Array.isArray(clients)) return;
 
-    ipActivityRows.innerHTML = clients
+    latestClients = clients;
+    const visibleClients = unknownOnlyToggle?.checked
+      ? clients.filter((client) => client?.known !== true)
+      : clients;
+
+    if (visibleClients.length === 0) {
+      ipActivityRows.innerHTML = '<div class="ip-row" role="row"><span><b>No matching IPs</b><small>filter has no results</small></span></div>';
+      return;
+    }
+
+    ipActivityRows.innerHTML = visibleClients
       .slice(0, 12)
       .map((client, index) => {
         const ip = typeof client.ip === 'string' ? client.ip : 'unknown';
         const label = typeof client.label === 'string' ? client.label : ip;
+        const known = client.known === true;
         const lastSeen = typeof client.lastSeen === 'string' ? client.lastSeen : 'unknown';
         const node = typeof client.node === 'string' ? client.node : 'subscription';
+        const todayBytes = client.traffic && typeof client.traffic.todayBytes === 'number'
+          ? `${Math.round(client.traffic.todayBytes / 1024 / 1024)} MB`
+          : '--';
 
         return `
           <div class="ip-row ${index === 0 ? 'current' : ''}" role="row">
             <span><b>${ip}</b><small>${label}</small></span>
-            <span><b>unknown</b><small>ISP / ASN unavailable</small></span>
+            <span><b>${known ? 'KNOWN' : 'UNKNOWN'}</b><small>${known ? 'labeled IP' : 'needs review'}</small></span>
             <span><b>${lastSeen}</b><small>from status JSON</small></span>
-            <span><b>--</b><small>traffic pending</small></span>
+            <span><b>${todayBytes}</b><small>nginx observed</small></span>
             <span><b>${node}</b><small>nginx access log</small></span>
           </div>
         `;
       })
       .join('');
   }
+
+  unknownOnlyToggle?.addEventListener('change', () => {
+    renderClientRows(latestClients);
+  });
 
   async function loadSubscriptionStatus() {
     if (!updatedAt) return;
@@ -470,6 +490,18 @@ import {
     font-size: 13px;
     white-space: nowrap;
   }
+
+  .unknown-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #c0c0c0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .unknown-filter input { accent-color: #f2f2f2; }
 
   .ip-table { display: grid; }
 
