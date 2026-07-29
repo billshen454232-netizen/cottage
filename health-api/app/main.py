@@ -17,12 +17,14 @@ app.add_middleware(
 )
 
 SERVICES = [
-    {
-        "id": "subs",
-        "name": "订阅门户",
-        "url": "https://subs.ttlink.asia/subs.html",
-        "probe": True,
-    },
+    # subs 登录门户已下线（subs.html 返回 404），探测暂时注释；
+    # 订阅入口已迁至 home.ttlink.asia/subscribe（Cloudflare Access 保护）
+    # {
+    #     "id": "subs",
+    #     "name": "订阅门户",
+    #     "url": "https://subs.ttlink.asia/subs.html",
+    #     "probe": True,
+    # },
     {
         "id": "cli-proxy-api",
         "name": "CLI Proxy API",
@@ -36,9 +38,9 @@ SERVICES = [
         "probe": False,
     },
     {
-        "id": "knowledge-graph",
-        "name": "知识图谱",
-        "url": "https://graph.ttlink.asia",
+        "id": "smart-notes",
+        "name": "智能笔记",
+        "url": "https://kb.ttlink.asia/",
         "probe": False,
     },
 ]

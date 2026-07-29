@@ -31,9 +31,9 @@ export const serviceEntries: ServiceEntry[] = [
     status: '计划中',
   },
   {
-    name: '知识图谱',
-    description: '个人知识图谱入口。',
-    url: 'https://graph.ttlink.asia',
+    name: '智能笔记',
+    description: '个人智能笔记入口。',
+    url: 'https://kb.ttlink.asia/',
     status: '计划中',
   },
 ];

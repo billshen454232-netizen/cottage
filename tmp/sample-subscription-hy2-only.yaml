@@ -1,0 +1,6 @@
+proxies:
+  - name: hy2-ttlink
+    type: hysteria2
+    server: hy.ttlink.asia
+    port: 443
+    sni: hy.ttlink.asia

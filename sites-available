@@ -1,0 +1,33 @@
+server {
+        listen 443 ssl http2;
+        server_name ttlink.asia subs.ttlink.asia;
+
+        ssl_certificate     /etc/letsencrypt/live/ttlink.asia/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/ttlink.asia/privkey.pem;
+        ssl_session_timeout 1d;
+        ssl_session_cache shared:SSL:10m;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_prefer_server_ciphers off;
+
+        location = /subs/subs-ff5188e712b3ed8b.yaml {
+            alias /etc/letsencrypt/subs/subs-ff5188e712b3ed8b.yaml;
+            default_type application/yaml;
+            add_header Cache-Control "no-store" always;
+            add_header X-Robots-Tag "noindex, nofollow" always;
+        }
+        location = /subs/subscription-status.json {
+            alias /etc/letsencrypt/subs/subscription-status.json;
+   	    default_type application/json;
+   	    add_header Cache-Control "no-store" always;
+   	    add_header X-Robots-Tag "noindex, nofollow" always;
+   	    add_header Access-Control-Allow-Origin "https://home.ttlink.asia" always;
+   	    add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+   	    add_header Access-Control-Allow-Headers "*" always;
+    	    add_header X-Debug-Remote-Addr $remote_addr always;
+	    add_header X-Debug-Realip-Remote-Addr $realip_remote_addr always;
+	    add_header X-Debug-CF-Connecting-IP $http_cf_connecting_ip always;
+        }
+        location ^~ /subs/ {
+            return 410;
+        }
+    }

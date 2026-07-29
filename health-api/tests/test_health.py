@@ -17,7 +17,7 @@ def test_health_api_returns_expected_shape():
 
     assert "services" in data
     assert isinstance(data["services"], list)
-    assert len(data["services"]) >= 4
+    assert len(data["services"]) >= 3
 
 
 def test_health_api_contains_expected_services():
@@ -27,10 +27,11 @@ def test_health_api_contains_expected_services():
     services = data["services"]
     service_ids = {service["id"] for service in services}
 
-    assert "subs" in service_ids
+    # subs 探测已随门户下线暂时注释，恢复时一并打开
+    # assert "subs" in service_ids
     assert "cli-proxy-api" in service_ids
     assert "blog" in service_ids
-    assert "knowledge-graph" in service_ids
+    assert "smart-notes" in service_ids
 
 
 def test_each_service_has_required_fields():

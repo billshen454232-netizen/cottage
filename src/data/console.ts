@@ -12,6 +12,6 @@ export const planItems = [
   '根据需要为 FastAPI 增加 CORS 配置',
   '把 Health API 状态接入主站首页',
   '设计 GitHub Actions 控制 Cloudflare Pages 部署的发布闸门',
-  '规划知识图谱 graph.ttlink.asia 的上线方式',
+  '规划智能笔记 kb.ttlink.asia 的上线方式',
 ];
 

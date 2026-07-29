@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-12T18:30:03+08:00",
+  "subscription": {
+    "name": "TTLINK Personal Ops",
+    "url": "https://subs.ttlink.asia/subs/subs-ff5188e712b3ed8b.yaml",
+    "status": "active",
+    "nodeCount": 2,
+    "lastModified": "2026-06-12T18:30:02+08:00",
+    "containsHy2": true,
+    "containsVless": true
+  },
+  "services": [
+    {
+      "name": "nginx",
+      "status": "unknown"
+    },
+    {
+      "name": "xray",
+      "status": "unknown"
+    },
+    {
+      "name": "hysteria",
+      "status": "unknown"
+    }
+  ],
+  "ports": [
+    {
+      "name": "nginx-https",
+      "protocol": "tcp",
+      "port": 443,
+      "status": "unknown"
+    },
+    {
+      "name": "hysteria-quic",
+      "protocol": "udp",
+      "port": 443,
+      "status": "unknown"
+    },
+    {
+      "name": "xray-vless",
+      "protocol": "tcp",
+      "host": "127.0.0.1",
+      "port": 10000,
+      "status": "unknown"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "hy2-ttlink",
+      "type": "hysteria2",
+      "domain": "hy.ttlink.asia",
+      "status": "unknown",
+      "source": "hysteria-traffic-api",
+      "traffic": null,
+      "online": {
+        "clientCount": null
+      }
+    },
+    {
+      "name": "vless-ttlink",
+      "type": "vless",
+      "domain": "vless.ttlink.asia",
+      "status": "unknown",
+      "source": "xray-stats-api",
+      "traffic": null,
+      "online": {
+        "clientCount": null
+      }
+    }
+  ],
+  "clients": [],
+  "traffic": {
+    "todayBytes": null,
+    "monthBytes": null,
+    "uniqueIpsToday": null,
+    "uniqueIpsMonth": null,
+    "sevenDay": []
+  },
+  "errors": []
+}

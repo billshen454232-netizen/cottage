@@ -1,0 +1,169 @@
+proxies:
+  - name: hy2-ttlink
+    type: hysteria2
+    server: hy.ttlink.asia
+    port: 443
+    sni: hy.ttlink.asia
+
+  - name: vless-ttlink
+    type: vless
+    server: vless.ttlink.asia
+    port: 443
+    network: ws
+    tls: true
+
+
+
+
+#!/bin/bash
+
+BASE_LOG_FILE="/home/serverGeneralScript/log/muliu_task.log"
+
+while getopts ":w:c:s:t:p:l:r:v:i:" opt; do
+  case $opt in
+    w) WORKSPACE_PATH="$OPTARG"
+    ;;
+    c) CODE_PATH="$OPTARG"
+    ;;
+    s) RUN_SCRIPT="$OPTARG"
+    ;;
+    t) TASK_WORKSPACE_PATH="$OPTARG"
+    ;;
+    p) ARGS_FILE_PATH="$OPTARG"
+    ;;
+    l) OUT_PUT_LOG_FILE="$OPTARG"
+    ;;
+    r) TASK_TO_CODE_PATH="$OPTARG"
+    ;;
+    v) MULIU_RUN_VERSION="$OPTARG"
+    ;;
+    i) TASK_ID="$OPTARG"
+    ;;
+  esac
+done
+
+{
+  echo "=============================="
+  echo "time: $(date '+%Y-%m-%d %H:%M:%S')"
+  echo "script: $0"
+  echo "raw_args: $*"
+  echo "parsed_args:"
+  echo "  WORKSPACE_PATH(-w): ${WORKSPACE_PATH:-}"
+  echo "  CODE_PATH(-c): ${CODE_PATH:-}"
+  echo "  RUN_SCRIPT(-s): ${RUN_SCRIPT:-}"
+  echo "  TASK_WORKSPACE_PATH(-t): ${TASK_WORKSPACE_PATH:-}"
+  echo "  ARGS_FILE_PATH(-p): ${ARGS_FILE_PATH:-}"
+  echo "  OUT_PUT_LOG_FILE(-l): ${OUT_PUT_LOG_FILE:-}"
+  echo "  TASK_TO_CODE_PATH(-r): ${TASK_TO_CODE_PATH:-}"
+  echo "  MULIU_RUN_VERSION(-v): ${MULIU_RUN_VERSION:-}"
+  echo "  TASK_ID(-i): ${TASK_ID:-}"
+} >> "$BASE_LOG_FILE" 2>&1
+
+echo "$ARGS_FILE_PATH"
+
+# 仅当参数以"argss"开头时进行修复（避免误替换其他内容）
+#if [[ "$ARGS_FILE_PATH" == argss* ]]; then
+  # 用sed将"argss"替换为"args\/s"（注意需要转义\为\\）
+  #ARGS_FILE_PATH=$(echo "$ARGS_FILE_PATH" | sed 's/^argss/args\/s/')
+#fi
+
+#args_path="/data/app/muliu_ws/workspace/taskDir/${TASK_WORKSPACE_PATH}/${ARGS_FILE_PATH}"
+
+SCRIPT_PATH='/home/serverGeneralScript'
+
+# 检查目标目录是否存在
+if [ ! -d "$SCRIPT_PATH" ]; then
+    echo "错误：目录 $SCRIPT_PATH 不存在！" >&2
+    echo "error: SCRIPT_PATH not exists: $SCRIPT_PATH" >> "$BASE_LOG_FILE" 2>&1
+    exit 1
+fi
+
+cat $TASK_ID >> /home/serverGeneralScript/log/muliu_task.log 2>&1
+
+args=$(cat "$ARGS_FILE_PATH")
+echo $args
+
+# ==============================
+# 收集关键任务信息
+# ==============================
+
+# ==============================
+# 收集关键任务信息
+# ==============================
+
+README_FILE="/data/app/muliu_ws/workspace/taskDir/task_${TASK_ID}/README.md"
+
+if [ ! -f "$README_FILE" ]; then
+    README_FILE="${TASK_WORKSPACE_PATH}/README.md"
+fi
+
+if [ ! -f "$README_FILE" ] && [ -n "$WORKSPACE_PATH" ] && [ -n "$TASK_ID" ]; then
+    README_FILE="${WORKSPACE_PATH}/taskDir/task_${TASK_ID}/README.md"
+fi
+
+TASK_CREATOR=""
+if [ -n "$README_FILE" ] && [ -f "$README_FILE" ]; then
+    TASK_CREATOR=$(head -n 1 "$README_FILE" | sed -n 's/.*任务创建者\([^,， ]*\).*/\1/p')
+fi
+
+RUN_TIME=""
+if [ -n "$OUT_PUT_LOG_FILE" ]; then
+    RUN_BASE_NAME=$(basename "$OUT_PUT_LOG_FILE")
+    RUN_TIME_RAW=$(echo "$RUN_BASE_NAME" | sed -n 's/.*_\([0-9]\{6\}\)_\([0-9]\{6\}\)_.*/\1 \2/p')
+    if [ -n "$RUN_TIME_RAW" ]; then
+        RUN_DATE=$(echo "$RUN_TIME_RAW" | awk '{print $1}')
+        RUN_CLOCK=$(echo "$RUN_TIME_RAW" | awk '{print $2}')
+        RUN_TIME="20${RUN_DATE} ${RUN_CLOCK:0:2}:${RUN_CLOCK:2:2}:${RUN_CLOCK:4:2}"
+    fi
+fi
+
+TASK_PARAM="$args"
+
+fname=$(echo $args | cut -d ' ' -f 1)
+fargs=$(echo $args | cut -d ' ' -f 2-)
+
+if [[ $fname == "patch" ]]; then
+    TASK_COMMAND="patch"
+else
+    TASK_COMMAND="serverinfo"
+fi
+
+SAFE_PARAM=$(echo "${TASK_PARAM:-empty}" | tr ' /' '__')
+SAFE_COMMAND=$(echo "${TASK_COMMAND:-unknown}" | tr ' /' '__')
+
+KEY_LOG_FILE="/home/serverGeneralScript/log/${SAFE_PARAM}_${SAFE_COMMAND}.log"
+
+echo "${RUN_TIME:-unknown}_${TASK_CREATOR:-unknown}" >> "$KEY_LOG_FILE" 2>&1
+
+{
+    echo "key_info_log=${KEY_LOG_FILE}"
+    echo "key_info=${RUN_TIME:-unknown}_${TASK_CREATOR:-unknown}"
+    echo "readme_file=${README_FILE:-}"
+} >> "$BASE_LOG_FILE" 2>&1
+
+
+# 切换目录并执行脚本
+cd "$SCRIPT_PATH" || exit 1
+python3.7 --version
+echo "***************************************"
+echo $fname
+echo $fargs
+echo "***************************************"
+
+{
+  echo "parsed_args_file:"
+  echo "  fname: ${fname:-}"
+  echo "  fargs: ${fargs:-}"
+  echo "branch:"
+  if [[ $fname == "patch" ]]; then
+    echo "  command: python3 cc_patch.py ${fargs:-}"
+  else
+    echo "  command: bash basic_info.sh ${args:-}"
+  fi
+} >> "$BASE_LOG_FILE" 2>&1
+
+if [[ $fname == "patch" ]]; then
+    python3 cc_patch.py $fargs
+else
+    bash basic_info.sh $args
+fi

@@ -1,0 +1,13 @@
+proxies:
+  - name: hy2-ttlink
+    type: hysteria2
+    server: hy.ttlink.asia
+    port: 443
+    sni: hy.ttlink.asia
+
+  - name: vless-ttlink
+    type: vless
+    server: vless.ttlink.asia
+    port: 443
+    network: ws
+    tls: true
