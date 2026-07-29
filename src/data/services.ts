@@ -34,7 +34,7 @@ export const serviceEntries: ServiceEntry[] = [
     name: '智能笔记',
     description: '个人智能笔记入口。',
     url: 'https://kb.ttlink.asia/',
-    status: '计划中',
+    status: '已上线',
   },
 ];
 

@@ -41,7 +41,7 @@ SERVICES = [
         "id": "smart-notes",
         "name": "智能笔记",
         "url": "https://kb.ttlink.asia/",
-        "probe": False,
+        "probe": True,
     },
 ]
 
