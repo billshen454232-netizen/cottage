@@ -238,7 +238,21 @@ const commands = [
       await runCommand(command);
     });
 
-    terminalBody.addEventListener('click', () => input.focus());
+    // 全页任意处点击即聚焦输入；避开链接点击与划词选中
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('a')) return;
+      if (window.getSelection()?.toString()) return;
+      input.focus({ preventScroll: true });
+    });
+
+    // 直接敲键盘时自动聚焦，避免首字符丢失
+    document.addEventListener('keydown', (event) => {
+      if (document.activeElement === input) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.key.length === 1 || event.key === 'Backspace') {
+        input.focus({ preventScroll: true });
+      }
+    });
   </script>
 </Layout>
 
