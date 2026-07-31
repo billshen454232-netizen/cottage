@@ -17,7 +17,7 @@ def test_health_api_returns_expected_shape():
 
     assert "services" in data
     assert isinstance(data["services"], list)
-    assert len(data["services"]) >= 3
+    assert len(data["services"]) >= 2
 
 
 def test_health_api_contains_expected_services():
@@ -30,7 +30,6 @@ def test_health_api_contains_expected_services():
     # subs 探测已随门户下线暂时注释，恢复时一并打开
     # assert "subs" in service_ids
     assert "cli-proxy-api" in service_ids
-    assert "blog" in service_ids
     assert "smart-notes" in service_ids
 
 
@@ -57,8 +56,7 @@ def test_planned_services_are_not_probed():
         if service["status"] == "planned"
     ]
 
-    assert len(planned_services) >= 1
-
+    # 当前所有服务均已上线探测，若后续新增 planned 服务，确保其不被探测
     for service in planned_services:
         assert service["statusCode"] is None
         assert service["latencyMs"] is None

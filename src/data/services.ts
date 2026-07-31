@@ -25,12 +25,6 @@ export const serviceEntries: ServiceEntry[] = [
     status: '已上线',
   },
   {
-    name: '个人博客',
-    description: '博客内容入口。',
-    url: 'https://blog.ttlink.asia',
-    status: '计划中',
-  },
-  {
     name: '智能笔记',
     description: '个人智能笔记入口。',
     url: 'https://kb.ttlink.asia/',

@@ -32,12 +32,6 @@ SERVICES = [
         "probe": True,
     },
     {
-        "id": "blog",
-        "name": "个人博客",
-        "url": "https://blog.ttlink.asia",
-        "probe": False,
-    },
-    {
         "id": "smart-notes",
         "name": "智能笔记",
         "url": "https://kb.ttlink.asia/",
