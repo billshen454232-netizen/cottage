@@ -29,7 +29,10 @@ const onlineCount = services.filter((service) => service.status === '已上线')
         {homeContent.statusItems.map((item) => <span>{item}</span>)}
       </div>
 
-      <a class="console-link" href="/about">{homeContent.consoleLabel}</a>
+      <div class="footer-links">
+        <a class="console-link" href="/about">{homeContent.consoleLabel}</a>
+        <a class="privacy-link" href="/privacy/">隐私政策</a>
+      </div>
     </section>
   </main>
 </Layout>
@@ -187,9 +190,17 @@ const onlineCount = services.filter((service) => service.status === '已上线')
     color: #3f3f46;
   }
 
-  .console-link {
-    display: inline-flex;
+  .footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
     margin-top: 28px;
+  }
+
+  .console-link,
+  .privacy-link {
+    display: inline-flex;
     color: #d4d4d8;
     text-decoration: none;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -199,7 +210,13 @@ const onlineCount = services.filter((service) => service.status === '已上线')
     transition: opacity 180ms ease, text-shadow 180ms ease, transform 180ms ease;
   }
 
-  .console-link:hover {
+  .privacy-link {
+    color: #a3a3a3;
+    font-size: 12px;
+  }
+
+  .console-link:hover,
+  .privacy-link:hover {
     opacity: 1;
     text-shadow: 0 0 12px rgba(255, 255, 255, 0.42);
     transform: translateY(-1px);
